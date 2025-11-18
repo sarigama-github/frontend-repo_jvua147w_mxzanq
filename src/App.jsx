@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import ProviderCard from './components/ProviderCard'
 import HowItWorks from './components/HowItWorks'
 import CTA from './components/CTA'
+import ProviderDetail from './components/ProviderDetail'
 
 function Home() {
   const [providers, setProviders] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const navigate = useNavigate()
 
   const fetchProviders = async (city) => {
     setLoading(true)
@@ -41,7 +43,7 @@ function Home() {
         {error && <p className="text-red-600 mb-4">{error}</p>}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {providers.map((p) => (
-            <ProviderCard key={p.id} provider={p} onSelect={() => {}} />
+            <ProviderCard key={p.id} provider={p} onSelect={() => navigate(`/provider/${p.id}`)} />
           ))}
           {!loading && providers.length === 0 && (
             <p className="text-slate-600">Geen aanbieders gevonden. Probeer een andere locatie.</p>
@@ -88,7 +90,7 @@ function ProviderPage() {
         })
       })
       if (!res.ok) throw new Error('Opslaan mislukt')
-      const data = await res.json()
+      await res.json()
       setStatus('✅ Aangemeld! Je staat nu in de zoekresultaten.')
       setForm({ display_name: '', city: '', description: '', price_per_page: '0.10', color_supported: true, duplex: true })
     } catch (e) {
@@ -143,6 +145,30 @@ function ProviderPage() {
   )
 }
 
+function ProviderDetailPage() {
+  const { id } = useParams()
+  return (
+    <main>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        <ProviderDetail providerId={id} />
+      </section>
+      <CTA />
+    </main>
+  )
+}
+
+function NotFoundPage() {
+  return (
+    <main>
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-20 text-center">
+        <h1 className="text-3xl font-extrabold text-slate-900">Pagina niet gevonden</h1>
+        <p className="mt-3 text-slate-700">De pagina die je zoekt bestaat niet. Ga terug naar de homepage.</p>
+        <a href="/" className="inline-block mt-6 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Terug naar Home</a>
+      </section>
+    </main>
+  )
+}
+
 function Layout({ children }) {
   return (
     <div className="min-h-screen bg-slate-50">
@@ -159,6 +185,8 @@ function App() {
       <Route path="/" element={<Layout><Home /></Layout>} />
       <Route path="/zo-werkt-het" element={<Layout><UserPage /></Layout>} />
       <Route path="/aanbieden" element={<Layout><ProviderPage /></Layout>} />
+      <Route path="/provider/:id" element={<Layout><ProviderDetailPage /></Layout>} />
+      <Route path="*" element={<Layout><NotFoundPage /></Layout>} />
     </Routes>
   )
 }
